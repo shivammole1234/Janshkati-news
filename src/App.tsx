@@ -420,16 +420,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Custom Interactive Live Update Block + Video Hub */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-4">
-                <LiveNews currentLanguage={currentLanguage} articles={MOCK_ARTICLES} onArticleClick={handleArticleOpen} />
-              </div>
-              <div className="lg:col-span-8">
-                <VideoSection currentLanguage={currentLanguage} articles={MOCK_ARTICLES} onArticleClick={handleArticleOpen} />
-              </div>
-            </div>
-
             {/* Master Page Column Layout: (Main feed left, widgets right) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Latest Feed Column */}
@@ -502,37 +492,6 @@ export default function App() {
                 </div>
               )}
             </div>
-
-            {/* Maharashtra Cities Sub-navigation */}
-            {activeCategory === 'maharashtra' && (
-              <div className="bg-brand-light/30 border border-brand-border/50 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
-                <div className="flex items-center space-x-2 text-xs font-bold text-brand-charcoal uppercase tracking-wider border-b border-brand-border/30 pb-2">
-                  <span className="w-2 h-2 rounded-full bg-brand-red animate-pulse" />
-                  <span>
-                    {currentLanguage === 'english' ? 'Select Local News by City' : currentLanguage === 'marathi' ? 'शहरांनुसार स्थानिक बातम्या' : 'शहर के अनुसार स्थानीय समाचार'}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {MAHARASHTRA_CITIES.map((city) => {
-                    const isActive = selectedCity === city.id;
-                    return (
-                      <button
-                        key={city.id}
-                        id={`city-tab-${city.id}`}
-                        onClick={() => setSelectedCity(city.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
-                          isActive
-                            ? 'bg-brand-red text-white border-brand-red shadow-sm'
-                            : 'bg-white text-brand-charcoal border-brand-border hover:border-brand-charcoal/30 hover:bg-brand-light/60'
-                        }`}
-                      >
-                        {city.label[currentLanguage]}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {/* Sub-grid listing for Category specific feeds */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
