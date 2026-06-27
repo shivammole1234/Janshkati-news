@@ -1,4 +1,5 @@
 import { Article, MarketIndex, Poll, Comment, Language, Author } from './types';
+import { ADDITIONAL_ARTICLES } from './additionalArticles';
 
 // Translation helpers for UI Elements
 export const TRANSLATIONS = {
@@ -1950,7 +1951,11 @@ const generateProceduralArticles = (): Article[] => {
 
 const PROCEDURAL_ARTICLES = generateProceduralArticles();
 
-export const MOCK_ARTICLES: Article[] = [...STATIC_MOCK_ARTICLES, ...PROCEDURAL_ARTICLES];
+export const MOCK_ARTICLES: Article[] = [
+  ...STATIC_MOCK_ARTICLES,
+  ...PROCEDURAL_ARTICLES,
+  ...ADDITIONAL_ARTICLES
+];
 
 export const MOCK_COMMENTS: Comment[] = [
   {

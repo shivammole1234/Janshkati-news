@@ -1,7 +1,7 @@
 {
-  "name": "Remix: Janshakti",
+  "name": "Janshakti News",
   "description": "Janshakti delivers fast, accurate and reliable news covering Maharashtra, India, World, Politics, Business, Technology, Sports, Entertainment, Health, Education and more.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["geolocation"],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]

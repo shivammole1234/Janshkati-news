@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Language, Article, MarketIndex } from '../types';
 import { TRANSLATIONS, CURRENT_POLL, MARKET_INDICES, CATEGORIES } from '../data';
+import WeatherWidget from './WeatherWidget';
 
 interface SidebarProps {
   currentLanguage: Language;
@@ -52,24 +53,7 @@ export default function Sidebar({
   return (
     <aside id="news-sidebar-panel" className="space-y-6 lg:sticky lg:top-24">
       {/* 1. Weather Mini Widget */}
-      <div className="bg-brand-light p-4 rounded-2xl border border-brand-border flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-amber-50 rounded-xl text-amber-500">
-            <CloudSun className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-[10px] text-brand-muted-text font-black uppercase tracking-wider">HURRICANE ALERT</div>
-            <div className="text-xs font-bold text-brand-charcoal flex items-center">
-              <MapPin className="w-3 h-3 mr-1 text-brand-red" />
-              Mumbai Metropolitan Area
-            </div>
-          </div>
-        </div>
-        <div className="text-right">
-          <span className="text-lg font-serif font-black text-brand-charcoal">28°C</span>
-          <div className="text-[9px] font-bold text-brand-red uppercase">Scatter Storms</div>
-        </div>
-      </div>
+      <WeatherWidget currentLanguage={currentLanguage} />
 
       {/* 2. Stock & Commodity Market Watch */}
       <div className="bg-white p-5 rounded-2xl border border-brand-border space-y-4 shadow-sm">
