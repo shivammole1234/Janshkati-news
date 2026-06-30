@@ -72,11 +72,32 @@ export async function getArticlesFromFirestore(): Promise<Article[]> {
 }
 
 /**
+ * Helper to recursively remove keys with 'undefined' values
+ * so that Firestore does not crash with unsupported field value errors.
+ */
+function cleanUndefined(obj: any): any {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(cleanUndefined);
+  }
+  const cleanObj: any = {};
+  for (const key of Object.keys(obj)) {
+    if (obj[key] !== undefined) {
+      cleanObj[key] = cleanUndefined(obj[key]);
+    }
+  }
+  return cleanObj;
+}
+
+/**
  * Add a new article to Firestore
  */
 export async function addArticleToFirestore(article: Omit<Article, 'id'>): Promise<string> {
+  const cleaned = cleanUndefined(article);
   const docRef = await addDoc(collection(db, 'articles'), {
-    ...article,
+    ...cleaned,
     timestamp: serverTimestamp(),
   });
   return docRef.id;
@@ -115,8 +136,9 @@ export async function getReelsFromFirestore(): Promise<FirestoreReel[]> {
  * Add a new reel to Firestore
  */
 export async function addReelToFirestore(reel: Omit<FirestoreReel, 'id' | 'timestamp'>): Promise<string> {
+  const cleaned = cleanUndefined(reel);
   const docRef = await addDoc(collection(db, 'reels'), {
-    ...reel,
+    ...cleaned,
     timestamp: serverTimestamp(),
   });
   return docRef.id;
