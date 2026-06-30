@@ -4,12 +4,12 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/
 
 // Credentials retrieved from firebase-applet-config.json
 const firebaseConfig = {
-  apiKey: "AIzaSyDdoBTouo-XNPntHB2YFfguIqWGvbQdkag",
-  authDomain: "vocal-analogy-6gxqk.firebaseapp.com",
-  projectId: "vocal-analogy-6gxqk",
-  storageBucket: "vocal-analogy-6gxqk.firebasestorage.app",
-  messagingSenderId: "482425198507",
-  appId: "1:482425198507:web:fefa5b0b1493e9dfe924ee"
+  apiKey: "AIzaSyC1kjdY7dzDiMESRqXT3xFuLHoNXdITX8c",
+  authDomain: "janshakti-news1.firebaseapp.com",
+  projectId: "janshakti-news1",
+  storageBucket: "janshakti-news1.firebasestorage.app",
+  messagingSenderId: "944404588398",
+  appId: "1:944404588398:web:4f90a50c8f36683971037f"
 };
 
 // Initialize Firebase
@@ -44,19 +44,8 @@ export function uploadFileToFirebase(
           console.warn("Firebase Storage blocked by security rules/CORS. Creating offline mockup URL instead:", error);
           if (onProgress) onProgress(100);
           
-          // Fallback to base64 encoding or Local Object URL
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            if (typeof reader.result === 'string') {
-              resolve(reader.result);
-            } else {
-              resolve(URL.createObjectURL(file));
-            }
-          };
-          reader.onerror = () => {
-            resolve(URL.createObjectURL(file));
-          };
-          reader.readAsDataURL(file);
+          // Fallback to compressed base64 encoding or Local Object URL
+          compressAndConvertToBase64(file).then(resolve);
         },
         async () => {
           try {
@@ -75,3 +64,60 @@ export function uploadFileToFirebase(
     }
   });
 }
+
+/**
+ * Compresses an image to low resolution and high quality jpeg
+ * to prevent massive base64 payloads if Firebase Storage is blocked.
+ */
+function compressAndConvertToBase64(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(typeof reader.result === 'string' ? reader.result : URL.createObjectURL(file));
+      reader.onerror = () => resolve(URL.createObjectURL(file));
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Max dimension 800px for fallback thumb
+        const maxDim = 800;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          // Compress to 0.7 quality JPEG
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(dataUrl);
+        } else {
+          resolve(typeof e.target?.result === 'string' ? e.target.result : URL.createObjectURL(file));
+        }
+      };
+      img.onerror = () => {
+        resolve(typeof e.target?.result === 'string' ? e.target.result : URL.createObjectURL(file));
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => resolve(URL.createObjectURL(file));
+    reader.readAsDataURL(file);
+  });
+}
+
