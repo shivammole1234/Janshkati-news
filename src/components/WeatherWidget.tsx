@@ -134,7 +134,20 @@ export default function WeatherWidget({ currentLanguage }: WeatherWidgetProps) {
       });
       setError(false);
     } catch (err) {
-      console.error("Error fetching weather:", err);
+      console.warn("Weather API failed or blocked, utilizing beautiful offline fallback data:", err);
+      
+      // Compute reasonable default location name
+      let locationName = customName || t.mumbaiFallback;
+      if (!customName) {
+        locationName = `${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E`;
+      }
+
+      // Populate weather state with a pleasant, realistic temperature of 31°C (Partly Cloudy)
+      setWeather({
+        temp: 31,
+        conditionCode: 2, // Partly Cloudy
+        locationName: locationName
+      });
       setError(true);
     } finally {
       setLoading(false);
