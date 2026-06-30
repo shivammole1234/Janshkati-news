@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Bookmark, Share2, Heart, MessageSquare, Printer, ZoomIn, ZoomOut,
   ChevronLeft, ChevronRight, Play, CheckCircle2, ThumbsUp, Heart as HeartIcon, 
-  Sparkles, RotateCcw, AlertTriangle, Send, Share, Copy
+  Sparkles, RotateCcw, AlertTriangle, Send, Share, Copy, Check, ExternalLink
 } from 'lucide-react';
 import { Language, Article, Comment } from '../types';
 import { TRANSLATIONS, CATEGORIES, MOCK_ARTICLES, MOCK_COMMENTS } from '../data';
@@ -40,6 +40,7 @@ export default function ArticleModal({
   const [fontSize, setFontSize] = useState<number>(18); // default size in px
   const [scrollProgress, setScrollProgress] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   
   // Comments and feedback state
   const [comments, setComments] = useState<Comment[]>(MOCK_COMMENTS);
@@ -238,15 +239,11 @@ export default function ArticleModal({
             {/* Share link copy */}
             <button
               id="reader-share-btn"
-              onClick={handleCopyLink}
-              className={`p-1.5 rounded-full border transition-all ${
-                copied 
-                  ? 'bg-green-50 border-green-500 text-green-600' 
-                  : 'border-brand-border hover:bg-brand-light text-brand-secondary-text'
-              }`}
-              title="Copy Link to Clipboard"
+              onClick={() => setShowShare(true)}
+              className="p-1.5 rounded-full border border-brand-border hover:bg-brand-light text-brand-secondary-text hover:text-brand-red transition-all cursor-pointer"
+              title="Share Article"
             >
-              {copied ? <Sparkles className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+              <Share2 className="w-4 h-4" />
             </button>
 
             {/* Print */}
@@ -639,6 +636,180 @@ export default function ArticleModal({
           </div>
         </div>
       </motion.div>
+
+      {/* Comprehensive News Social Share Modal */}
+      <AnimatePresence>
+        {showShare && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="absolute inset-0" onClick={() => setShowShare(false)} />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative bg-white rounded-3xl p-6 w-full max-w-md border border-slate-100 shadow-2xl z-10 text-slate-800 text-xs overflow-y-auto max-h-[90vh]"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-serif font-black text-base text-brand-charcoal">
+                  {currentLanguage === 'marathi' ? 'बातमी शेअर करा' : currentLanguage === 'hindi' ? 'समाचार साझा करें' : 'Share News Article'}
+                </h4>
+                <button onClick={() => setShowShare(false)} className="p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-all cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-slate-500 mb-5 font-sans leading-relaxed">
+                {currentLanguage === 'marathi' 
+                  ? 'ही महत्त्वाची बातमी तुमच्या मित्रांसह सोशल मीडियावर किंवा थेट व्हॉट्सॲपवर शेअर करा:' 
+                  : currentLanguage === 'hindi' 
+                    ? 'इस महत्वपूर्ण समाचार को अपने मित्रों के साथ सोशल मीडिया या सीधे व्हाट्सएप पर साझा करें:' 
+                    : 'Share this premium editorial story with friends across social networks, messaging platforms, or copy the direct source URL:'}
+              </p>
+
+              {/* Quick share action links grid */}
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {/* WhatsApp Share */}
+                <a
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(article.title[currentLanguage] + " - Read on Janshakti News Portal: " + window.location.href)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-3 px-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] font-bold border border-[#25D366]/20 rounded-2xl flex items-center gap-2.5 transition-all text-left justify-center cursor-pointer"
+                >
+                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.66.986 3.298 1.448 5.348 1.449 5.27.002 9.554-4.282 9.556-9.561.001-2.556-.991-4.959-2.793-6.762-1.801-1.801-4.197-2.791-6.751-2.792-5.27 0-9.555 4.284-9.558 9.563-.002 2.03.534 3.407 1.448 5.319L2.622 21.37l4.025-1.056z"/>
+                  </svg>
+                  <span>WhatsApp</span>
+                </a>
+
+                {/* Facebook Share */}
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-3 px-4 bg-[#1877F2]/10 hover:bg-[#1877F2]/20 text-[#1877F2] font-bold border border-[#1877F2]/20 rounded-2xl flex items-center gap-2.5 transition-all text-left justify-center cursor-pointer"
+                >
+                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                  <span>Facebook</span>
+                </a>
+
+                {/* Twitter / X Share */}
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title[currentLanguage] + " #JanshaktiNews")}&url=${encodeURIComponent(window.location.href)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold border border-slate-200 rounded-2xl flex items-center gap-2.5 transition-all text-left justify-center cursor-pointer"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  <span>Twitter / X</span>
+                </a>
+
+                {/* LinkedIn Share */}
+                <a
+                  href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-3 px-4 bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 text-[#0A66C2] font-bold border border-[#0A66C2]/20 rounded-2xl flex items-center gap-2.5 transition-all text-left justify-center cursor-pointer"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  <span>LinkedIn</span>
+                </a>
+              </div>
+
+              {/* Copy Link Row */}
+              <div className="mb-6">
+                <button
+                  onClick={handleCopyLink}
+                  className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold border border-slate-200 rounded-2xl flex items-center justify-between transition-all cursor-pointer"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Bookmark className="w-4 h-4 text-slate-500" />
+                    {currentLanguage === 'marathi' ? 'लिंक कॉपी करा' : currentLanguage === 'hindi' ? 'लिंक कॉपी करें' : 'Copy Link'}
+                  </span>
+                  {copied ? (
+                    <span className="text-emerald-600 font-bold flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-lg">
+                      <Check className="w-3.5 h-3.5" />
+                      {currentLanguage === 'marathi' ? 'कॉपी केली!' : currentLanguage === 'hindi' ? 'कॉपी की गई!' : 'Copied!'}
+                    </span>
+                  ) : (
+                    <ExternalLink className="w-4 h-4 text-slate-400" />
+                  )}
+                </button>
+              </div>
+
+              {/* Beautiful Instagram Stories visual template helper */}
+              <div className="border-t border-slate-100 pt-5">
+                <h5 className="font-bold text-xs text-brand-charcoal mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                  <span className="p-1 bg-gradient-to-tr from-amber-500 via-purple-600 to-indigo-500 text-white rounded-lg flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051c-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                    </svg>
+                  </span>
+                  <span>Instagram Stories Share Helper</span>
+                </h5>
+                <p className="text-[11px] text-slate-400 mb-4 font-sans leading-relaxed">
+                  Take a screenshot of the card below or hold on it to save, then upload to Instagram with our hashtags!
+                </p>
+
+                {/* Immersive Mobile Instagram mockup card */}
+                <div className="relative aspect-[9/16] bg-brand-charcoal text-white rounded-2xl p-4 overflow-hidden border border-slate-800 shadow-inner flex flex-col justify-between max-w-[210px] mx-auto scale-95 origin-top">
+                  {/* Top Accent bar */}
+                  <div className="flex justify-between items-center text-[8px] opacity-85">
+                    <span className="font-serif font-black tracking-widest text-brand-red uppercase">Janshakti</span>
+                    <span className="bg-brand-red/90 text-[7px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold flex items-center gap-0.5">
+                      {currentLanguage === 'marathi' ? 'ब्रेकिंग न्यूज' : currentLanguage === 'hindi' ? 'ब्रेकिंग न्यूज' : 'Breaking'}
+                    </span>
+                  </div>
+
+                  {/* Video thumbnail simulation background */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/35 -z-10">
+                    <img 
+                      src={article.image} 
+                      className="w-full h-full object-cover opacity-60 brightness-75"
+                    />
+                  </div>
+
+                  {/* Middle decoration logo */}
+                  <div className="my-auto flex flex-col items-center justify-center gap-1 text-center py-2 bg-brand-charcoal/40 rounded-xl border border-white/5 backdrop-blur-xs">
+                    <span className="text-[8px] tracking-wider uppercase font-black text-brand-red">Janshakti News</span>
+                    <span className="text-[6px] text-slate-300">Tap link in bio to read full article</span>
+                  </div>
+
+                  {/* Bottom text block */}
+                  <div className="space-y-1 bg-gradient-to-t from-black to-transparent pt-4 text-left">
+                    <span className="text-[7px] font-extrabold uppercase bg-brand-red text-white px-1.5 py-0.5 rounded">
+                      {CATEGORIES.find(c => c.id === article.category)?.label[currentLanguage] || article.category}
+                    </span>
+                    <h6 className="font-serif font-bold text-[9px] leading-tight line-clamp-3">
+                      {article.title[currentLanguage]}
+                    </h6>
+                    <div className="flex items-center justify-between text-[6px] pt-1 text-slate-400 border-t border-white/5">
+                      <span>{article.author.name}</span>
+                      <span>{article.readTime} mins read</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Auto Copy instagram tags button */}
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`#JanshaktiNews #MaharashtraNews #${CATEGORIES.find(c => c.id === article.category)?.label[currentLanguage] || article.category}`);
+                    alert("Instagram hashtags copied to clipboard! Paste them when publishing your story.");
+                  }}
+                  className="w-full mt-3 py-2 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-2.5 transition-all text-[11px] cursor-pointer"
+                >
+                  <Check className="w-4 h-4 text-indigo-600" />
+                  <span>Copy Instagram Tags & Hashtags</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

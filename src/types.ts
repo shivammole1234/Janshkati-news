@@ -86,3 +86,22 @@ export interface UserProfile {
     weeklyRoundup: boolean;
   };
 }
+
+export type AdPlacementType = 'header' | 'sidebar' | 'in-feed' | 'article-detail';
+
+export interface Ad {
+  id: string;
+  title: string;
+  type: 'banner' | 'square' | 'custom_html';
+  imageUrl?: string;
+  targetUrl?: string;
+  customHtml?: string;
+  isActive: boolean;
+  views: number;
+  clicks: number;
+  language: 'all' | Language;
+  category: string; // 'all' or specific category id like 'politics'
+  startDate: string;
+  adType: 'direct' | 'adsense'; // Direct advertiser vs Google AdSense placeholder
+}
+

@@ -6,6 +6,13 @@ import {
 } from 'lucide-react';
 import { Language, Article, UserProfile } from './types';
 import { MOCK_ARTICLES, TRANSLATIONS, CATEGORIES } from './data';
+import { getArticlesFromFirestore } from './utils/firebaseSync';
+import AdminWorkspace from './components/AdminWorkspace';
+
+export const navigateToPath = (path: string) => {
+  window.history.pushState({}, '', path);
+  window.dispatchEvent(new Event('pushstate-changed'));
+};
 import { EPAPER_PAGES } from './epaperData';
 import { generateEPaperPDF, downloadEPaperPDFDirect } from './utils/pdfGenerator';
 
@@ -18,11 +25,15 @@ import UserProfileModal from './components/UserProfileModal';
 import Sidebar from './components/Sidebar';
 import LatestNews from './components/LatestNews';
 import VideoSection from './components/VideoSection';
+import ShortsSection from './components/ShortsSection';
 import PhotoGallery from './components/PhotoGallery';
 import LiveNews from './components/LiveNews';
 import EditorialSection from './components/EditorialSection';
 import Footer from './components/Footer';
 import EPaperPDFView from './components/EPaperPDFView';
+import AdPlacement from './components/AdPlacement';
+import AdminPanelModal from './components/AdminPanelModal';
+
 
 // Maharashtra local news cities translations
 const MAHARASHTRA_CITIES = [
@@ -112,6 +123,44 @@ export default function App() {
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
 
+  // Custom Clientside Router for admin workspace
+  const [isAdminRoute, setIsAdminRoute] = useState(window.location.pathname === '/youradmin');
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setIsAdminRoute(window.location.pathname === '/youradmin');
+    };
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('pushstate-changed', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('pushstate-changed', handleLocationChange);
+    };
+  }, []);
+
+  // Firebase dynamic Articles state
+  const [articles, setArticles] = useState<Article[]>(MOCK_ARTICLES);
+
+  const loadAllArticles = async () => {
+    try {
+      const dbArts = await getArticlesFromFirestore();
+      if (dbArts && dbArts.length > 0) {
+        const dbIds = new Set(dbArts.map(a => a.id));
+        const filteredMock = MOCK_ARTICLES.filter(a => !dbIds.has(a.id));
+        setArticles([...dbArts, ...filteredMock]);
+      } else {
+        setArticles(MOCK_ARTICLES);
+      }
+    } catch (err) {
+      console.warn("Could not load dynamic articles:", err);
+      setArticles(MOCK_ARTICLES);
+    }
+  };
+
+  useEffect(() => {
+    loadAllArticles();
+  }, []);
+
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
     setSelectedCity('all');
@@ -120,6 +169,7 @@ export default function App() {
   // Modals state
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [epaperOpen, setEpaperOpen] = useState(false);
   const [epaperPage, setEpaperPage] = useState<number>(1);
@@ -262,22 +312,32 @@ export default function App() {
   const t = TRANSLATIONS[currentLanguage];
 
   // Group and query filters based on active category
-  const trendingArticles = MOCK_ARTICLES.filter(a => a.isTrending);
+  const trendingArticles = articles.filter(a => a.isTrending);
   
   // Hero section article (first featured item or fallback)
-  const heroArticle = MOCK_ARTICLES.find(a => a.isFeatured && a.category === 'maharashtra') || MOCK_ARTICLES[0];
-  const fourFeaturedGrid = MOCK_ARTICLES.filter(a => a.id !== heroArticle.id).slice(0, 4);
+  const heroArticle = articles.find(a => a.isFeatured && a.category === 'maharashtra') || articles[0];
+  const fourFeaturedGrid = articles.filter(a => a.id !== heroArticle.id).slice(0, 4);
 
   // Dynamic filter for content display
   const mainArticlesFeed = activeCategory === 'home' 
-    ? MOCK_ARTICLES 
-    : MOCK_ARTICLES.filter(a => {
+    ? articles 
+    : articles.filter(a => {
         if (a.category !== activeCategory) return false;
         if (activeCategory === 'maharashtra' && selectedCity !== 'all') {
           return a.city === selectedCity;
         }
         return true;
       });
+
+  if (isAdminRoute) {
+    return (
+      <AdminWorkspace 
+        currentLanguage={currentLanguage} 
+        onClose={() => navigateToPath('/')} 
+        onRefreshArticles={loadAllArticles}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col antialiased">
@@ -287,6 +347,7 @@ export default function App() {
         onCategoryChange={handleCategoryChange}
         onSearchOpen={() => setSearchOpen(true)}
         onProfileOpen={() => setProfileOpen(true)}
+        onAdminOpen={() => setAdminOpen(true)}
         currentLanguage={currentLanguage}
         onLanguageChange={setCurrentLanguage}
         onSubscribeOpen={() => setSubscribeOpen(true)}
@@ -317,6 +378,14 @@ export default function App() {
 
       {/* 4. Main Page Body Container */}
       <main className="flex-1 max-w-[1280px] mx-auto px-4 py-6 md:py-8 w-full space-y-12">
+        {/* Global Header-level Leaderboard Ad Campaign */}
+        <AdPlacement 
+          placement="header" 
+          currentLanguage={currentLanguage} 
+          currentCategory={activeCategory}
+          className="max-w-4xl mx-auto mb-4"
+        />
+
         {activeCategory === 'home' ? (
           /* ========================================================
              HOME PAGE EDITORIAL ARCHITECTURE
@@ -447,11 +516,14 @@ export default function App() {
               </div>
             </div>
 
+            {/* Shorts & Reels Section */}
+            <ShortsSection currentLanguage={currentLanguage} />
+
             {/* Photo Stories Masonry */}
-            <PhotoGallery currentLanguage={currentLanguage} articles={MOCK_ARTICLES} onArticleClick={handleArticleOpen} />
+            <PhotoGallery currentLanguage={currentLanguage} articles={articles} onArticleClick={handleArticleOpen} />
 
             {/* Editorial Opinions Panel */}
-            <EditorialSection currentLanguage={currentLanguage} articles={MOCK_ARTICLES} onArticleClick={handleArticleOpen} />
+            <EditorialSection currentLanguage={currentLanguage} articles={articles} onArticleClick={handleArticleOpen} />
           </div>
         ) : (
           /* ========================================================
@@ -568,7 +640,7 @@ export default function App() {
         onClose={() => setSearchOpen(false)}
         currentLanguage={currentLanguage}
         onArticleClick={handleArticleOpen}
-        articles={MOCK_ARTICLES}
+        articles={articles}
       />
 
       {/* 3. User Dashboard Modal */}
@@ -579,7 +651,17 @@ export default function App() {
         userProfile={userProfile}
         onSaveProfile={saveUserProfile}
         onArticleClick={handleArticleOpen}
-        articles={MOCK_ARTICLES}
+        articles={articles}
+      />
+
+      {/* 3.5. Ad Desk & Campaigns Management Panel Overlay */}
+      <AdminPanelModal
+        isOpen={adminOpen}
+        onClose={() => setAdminOpen(false)}
+        currentLanguage={currentLanguage}
+        onAdsUpdated={() => {
+          triggerToast("Ad campaigns updated successfully!");
+        }}
       />
 
       {/* 4. Custom Subscription Checkout Dialog */}

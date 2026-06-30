@@ -6,8 +6,10 @@ import {
 import { Language, Article, MarketIndex } from '../types';
 import { TRANSLATIONS, CURRENT_POLL, MARKET_INDICES, CATEGORIES } from '../data';
 import WeatherWidget from './WeatherWidget';
+import AdPlacement from './AdPlacement';
 
 interface SidebarProps {
+
   currentLanguage: Language;
   trendingArticles: Article[];
   onArticleClick: (articleId: string) => void;
@@ -54,6 +56,9 @@ export default function Sidebar({
     <aside id="news-sidebar-panel" className="space-y-6 lg:sticky lg:top-24">
       {/* 1. Weather Mini Widget */}
       <WeatherWidget currentLanguage={currentLanguage} />
+
+      {/* Sidebar square advertisement */}
+      <AdPlacement placement="sidebar" currentLanguage={currentLanguage} />
 
       {/* 2. Stock & Commodity Market Watch */}
       <div className="bg-white p-5 rounded-2xl border border-brand-border space-y-4 shadow-sm">

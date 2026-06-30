@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Sun, Bell, User, Newspaper, ChevronDown, Calendar, Menu, X, Landmark, Globe, Play } from 'lucide-react';
+import { Search, Sun, Bell, User, Newspaper, ChevronDown, Calendar, Menu, X, Landmark, Globe, Play, Sliders } from 'lucide-react';
 import { Language, UserProfile } from '../types';
 import { TRANSLATIONS, CATEGORIES } from '../data';
 import logoImg from '../assets/logo.jpg';
+import logoWordmark from '../assets/images/janshakti_logo_1782753719402.png';
 
 interface HeaderProps {
   activeCategory: string;
   onCategoryChange: (category: string) => void;
   onSearchOpen: () => void;
   onProfileOpen: () => void;
+  onAdminOpen: () => void;
   currentLanguage: Language;
   onLanguageChange: (lang: Language) => void;
   onSubscribeOpen: () => void;
@@ -74,6 +76,7 @@ export default function Header({
   onCategoryChange,
   onSearchOpen,
   onProfileOpen,
+  onAdminOpen,
   currentLanguage,
   onLanguageChange,
   onSubscribeOpen,
@@ -95,12 +98,17 @@ export default function Header({
       try {
         const promises = CITIES_WEATHER.map(c => 
           fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.latitude}&longitude=${c.longitude}&current_weather=true`)
-            .then(r => r.json())
+            .then(r => {
+              if (!r.ok) return null;
+              return r.json().catch(() => null);
+            })
+            .catch(() => null)
         );
         const results = await Promise.all(promises);
         
         const updated = weatherData.map((city, idx) => {
           const match = results[idx]?.current_weather;
+
           if (match) {
             const tempVal = Math.round(match.temperature);
             const code = match.weathercode;
@@ -358,7 +366,7 @@ export default function Header({
             </div>
 
             {/* Main logo wordmark with continuous red top line */}
-            <div className="relative w-full flex flex-col items-center">
+            <div className="relative w-[310px] h-[80px] pl-[5px] pb-0 ml-[3px] mt-[-15px] flex flex-col items-center">
               {/* Red top bar representing the traditional shirorekha */}
               <div className="h-[3px] md:h-[5px] bg-brand-red w-full rounded-sm z-10" />
               
@@ -369,15 +377,12 @@ export default function Header({
                   className="w-7 h-7 md:w-9 md:h-9 object-cover rounded-full border border-brand-red shadow-sm shrink-0"
                   referrerPolicy="no-referrer"
                 />
-                {currentLanguage === 'english' ? (
-                  <span className="text-3xl md:text-4xl lg:text-5xl font-serif font-black text-brand-red tracking-tight leading-none">
-                    Janshakti
-                  </span>
-                ) : (
-                  <span className="text-3xl md:text-4xl lg:text-5xl font-devanagari font-black text-brand-red tracking-wider leading-none">
-                    {currentLanguage === 'marathi' ? 'जनशक्ती' : 'जनशक्ति'}
-                  </span>
-                )}
+                <img 
+                  src={logoWordmark} 
+                  alt={currentLanguage === 'english' ? 'Janshakti' : currentLanguage === 'marathi' ? 'जनशक्ती' : 'जनशक्ति'} 
+                  className="w-[200px] h-[100px] object-contain"
+                  referrerPolicy="no-referrer"
+                />
               </div>
             </div>
           </div>
